@@ -30,6 +30,39 @@ A `false`, la silhouette reste proportionnee.
 Les plages sont des objets typees (`min_height`, `max_height`, `min_width`,
 `max_width`) et non plus une chaine `"0.5:0.5::1.15:1.15"`.
 
+## Dependances
+
+Ce plugin depend de **ZoneShilari.Common**, la bibliotheque partagee de la
+collection.
+
+| Fichier | Destination |
+|---|---|
+| `RealisticSizes.dll` | `Plugins/7777/` |
+| `ZoneShilari.Common.dll` | `Plugins/dependencies/` |
+| HintServiceMeow | `Plugins/7777/` |
+
+`ZoneShilari.Common.dll` ne va **jamais** dans `Plugins/7777/` : EXILED
+tenterait de le charger comme plugin. Il doit etre deploye avant ce plugin et
+mis a jour en meme temps.
+
+Pour compiler ce depot isolement, cloner
+[ZoneShilari.Common](https://github.com/Augaton/ZoneShilari.Common) a cote,
+ou passer `-p:CommonProject=chemin/vers/ZoneShilari.Common.csproj`.
+
+## Commandes staff
+
+| Commande | Permission | Effet |
+|---|---|---|
+| `sizes status` | `realisticsizes.manage` | Mode actif et reglages courants |
+| `sizes reset <joueur\|*>` | `realisticsizes.manage` | Remet la taille normale |
+
+Alias `rsize`.
+
+Toutes les commandes de la collection partagent le meme socle : verification de
+permission en premiere ligne, arguments bornes en longueur, exceptions
+capturees, actions a impact tracees avec l'auteur. Une commande parente sans
+argument liste ses sous-commandes.
+
 ## Note de portage
 
 La version 3.x ciblait EXILED 2.3.4. Quatre defauts corriges :
