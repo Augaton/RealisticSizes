@@ -1,0 +1,53 @@
+# RealisticSizes 4.0
+
+> Portage EXILED 9.14.2 d'un plugin de **JesusQC**. Depot non affilie a
+> l'auteur d'origine. Voir [NOTICE.md](NOTICE.md) pour l'attribution.
+
+Donne a chaque joueur une taille legerement differente a l'apparition.
+
+**EXILED 9.14.2** — `dotnet build -c Release RealisticSizes/RealisticSizes.csproj`
+
+## Modes
+
+| Mode | Effet |
+|---|---|
+| `Roleplay` | Variations discretes, credibles en RP (defaut) |
+| `Fun` | Variations larges et visibles |
+| `Manual` | Une plage par role, definie dans `manual_ranges` |
+
+`allow_unproportional_values` autorise une largeur differente de la hauteur.
+A `false`, la silhouette reste proportionnee.
+
+## Configuration
+
+| Cle | Defaut | Role |
+|---|---|---|
+| `affect_scps` | `false` | Deconseille : modifier la taille d'un SCP change ses hitbox |
+| `ignored_roles` | Tutorial, Overwatch, Filmmaker, SCP-079 | Roles jamais redimensionnes |
+| `apply_delay` | `0.4` | Delai avant application, le temps que le spawn se termine |
+| `spread_workload` | `true` | Etale les applications sur plusieurs frames en spawn massif |
+
+Les plages sont des objets typees (`min_height`, `max_height`, `min_width`,
+`max_width`) et non plus une chaine `"0.5:0.5::1.15:1.15"`.
+
+## Note de portage
+
+La version 3.x ciblait EXILED 2.3.4. Quatre defauts corriges :
+
+- **`float.Parse` sans culture invariante.** Les tailles etaient stockees en
+  chaine puis parsees avec la culture du systeme. Sur une machine francaise,
+  ou la virgule est le separateur decimal, `"1.15"` ne se parse pas comme
+  attendu. Le format chaine a disparu au profit d'un objet typee.
+- **Condition inversee.** `if (ev.Player != null || ev.NewRole != RoleType.None)`
+  utilisait `||` la ou `&&` etait attendu : un `Player` nul passait la garde et
+  provoquait une exception.
+- **Course entre joueurs.** Les tailles calculees etaient stockees dans deux
+  champs d'instance partages par tous les joueurs. Combine au delai aleatoire de
+  0,4 a 5 secondes de l'anti-lag, deux apparitions simultanees s'ecrasaient
+  mutuellement. Ce sont maintenant des variables locales.
+- **Resynchronisation manuelle.** Le plugin envoyait lui-meme un
+  `ObjectDestroyMessage` puis rappelait `SendSpawnMessage` par reflexion.
+  `Player.Scale` d'EXILED fait tout cela correctement.
+
+L'anti-lag aleatoire est remplace par un etalement deterministe, et les
+callbacks differes sont annules au depart du joueur et au changement de round.
