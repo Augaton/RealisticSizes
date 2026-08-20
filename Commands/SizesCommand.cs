@@ -19,7 +19,9 @@ namespace RealisticSizes.Commands
 
         public override void LoadGeneratedCommands()
         {
-            RegisterCommand(new StatusCommand("RealisticSizes", "4.1.0", Permission, builder =>
+            RegisterCommand(new StatusCommand(
+                "RealisticSizes",
+                typeof(Plugin), Permission, builder =>
             {
                 Config config = Plugin.Instance.Config;
                 builder.AppendLine($"  mode : {config.ActiveMode}");
