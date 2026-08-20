@@ -2,7 +2,7 @@ using System;
 using CommandSystem;
 using Exiled.API.Features;
 using UnityEngine;
-using ZoneShilari.Common.Commands;
+using AugatonLib.Commands;
 
 namespace RealisticSizes.Commands
 {
