@@ -5,6 +5,7 @@ using Exiled.Events.EventArgs.Player;
 using Exiled.Events.EventArgs.Server;
 using MEC;
 using PlayerRoles;
+using AugatonLib.Arbitration;
 using RealisticSizes.API;
 using UnityEngine;
 
@@ -57,7 +58,7 @@ namespace RealisticSizes.Handlers
                     if (target is null || !target.IsConnected || target.Role.Type != role)
                         return;
 
-                    target.Scale = scale;
+                    ScaleArbiter.Reset(target, scale);
 
                     if (config.Debug)
                         Log.Debug($"Taille appliquee a {target.Nickname} ({role}) : {scale}.");
@@ -75,6 +76,7 @@ namespace RealisticSizes.Handlers
                 return;
 
             Cancel(ev.Player.UserId);
+            ScaleArbiter.Forget(ev.Player);
         }
 
         public void OnRoundStarted() => spawnCounter = 0;
@@ -90,6 +92,8 @@ namespace RealisticSizes.Handlers
 
             pending.Clear();
             spawnCounter = 0;
+
+            ScaleArbiter.Clear();
         }
 
         private bool IsEligible(Player player, RoleTypeId role)
@@ -156,10 +160,10 @@ namespace RealisticSizes.Handlers
 
         private static void ResetScale(Player player)
         {
-            if (player is null || player.Scale == Vector3.one)
+            if (player is null)
                 return;
 
-            player.Scale = Vector3.one;
+            ScaleArbiter.Reset(player, Vector3.one);
         }
     }
 }
