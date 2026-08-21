@@ -2,6 +2,7 @@ using System;
 using CommandSystem;
 using Exiled.API.Features;
 using UnityEngine;
+using AugatonLib.Arbitration;
 using AugatonLib.Commands;
 
 namespace RealisticSizes.Commands
@@ -35,7 +36,7 @@ namespace RealisticSizes.Commands
                     if (player is null || player.Scale == Vector3.one)
                         continue;
 
-                    player.Scale = Vector3.one;
+                    ScaleArbiter.Reset(player, Vector3.one);
                     count++;
                 }
 
@@ -51,7 +52,7 @@ namespace RealisticSizes.Commands
                 return false;
             }
 
-            found.Scale = Vector3.one;
+            ScaleArbiter.Reset(found, Vector3.one);
             Audit(sender, "RealisticSizes", $"a remis a zero la taille de {found.Nickname} ({found.UserId})");
 
             response = $"{found.Nickname} est revenu a sa taille normale.";

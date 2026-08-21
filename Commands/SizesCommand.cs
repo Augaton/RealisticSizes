@@ -19,6 +19,8 @@ namespace RealisticSizes.Commands
 
         public override void LoadGeneratedCommands()
         {
+            RegisterCommand(new CollectionCommand(Permission));
+
             RegisterCommand(new StatusCommand(
                 "RealisticSizes",
                 typeof(Plugin), Permission, builder =>

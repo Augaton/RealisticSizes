@@ -4,6 +4,7 @@ using Exiled.API.Features;
 using PlayerRoles;
 using RealisticSizes.API;
 using RealisticSizes.Handlers;
+using AugatonLib.Runtime;
 using PlayerEvents = Exiled.Events.Handlers.Player;
 using ServerEvents = Exiled.Events.Handlers.Server;
 
@@ -40,6 +41,8 @@ namespace RealisticSizes
             ServerEvents.RoundEnded += playerHandlers.OnRoundEnded;
             ServerEvents.RestartingRound += playerHandlers.OnRestartingRound;
 
+            PluginDirectory.Register(this, Capability.Scale);
+
             base.OnEnabled();
         }
 
@@ -53,6 +56,9 @@ namespace RealisticSizes
             ServerEvents.RestartingRound -= playerHandlers.OnRestartingRound;
 
             playerHandlers?.Reset();
+
+            PluginDirectory.Unregister(this);
+
             playerHandlers = null;
             Instance = null;
 
