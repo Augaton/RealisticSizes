@@ -48,20 +48,28 @@ namespace RealisticSizes.Handlers
                 string userId = player.UserId;
 
                 Cancel(userId);
+                ScaleArbiter.Reset(player, ScaleArbiter.BaselineOf(player));
 
                 pending[userId] = Timing.CallDelayed(NextDelay(), () =>
                 {
-                    pending.Remove(userId);
+                    try
+                    {
+                        pending.Remove(userId);
 
-                    Player target = Player.Get(userId);
+                        Player target = Player.Get(userId);
 
-                    if (target is null || !target.IsConnected || target.Role.Type != role)
-                        return;
+                        if (target is null || !target.IsConnected || target.Role.Type != role)
+                            return;
 
-                    ScaleArbiter.Reset(target, scale);
+                        ScaleArbiter.SetBaseline(target, scale);
 
-                    if (config.Debug)
-                        Log.Debug($"Taille appliquee a {target.Nickname} ({role}) : {scale}.");
+                        if (config.Debug)
+                            Log.Debug($"Taille appliquee a {target.Nickname} ({role}) : {scale}.");
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error($"OnSpawned (application differee): {e}");
+                    }
                 });
             }
             catch (Exception e)
@@ -72,11 +80,18 @@ namespace RealisticSizes.Handlers
 
         public void OnLeft(LeftEventArgs ev)
         {
-            if (ev?.Player is null || string.IsNullOrEmpty(ev.Player.UserId))
-                return;
+            try
+            {
+                if (ev?.Player is null || string.IsNullOrEmpty(ev.Player.UserId))
+                    return;
 
-            Cancel(ev.Player.UserId);
-            ScaleArbiter.Forget(ev.Player);
+                Cancel(ev.Player.UserId);
+                ScaleArbiter.Forget(ev.Player);
+            }
+            catch (Exception e)
+            {
+                Log.Error($"OnLeft: {e}");
+            }
         }
 
         public void OnRoundStarted() => spawnCounter = 0;
@@ -87,13 +102,24 @@ namespace RealisticSizes.Handlers
 
         public void Reset()
         {
+            try
+            {
+                Stop();
+                ScaleArbiter.Clear();
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Reset: {e}");
+            }
+        }
+
+        public void Stop()
+        {
             foreach (KeyValuePair<string, CoroutineHandle> entry in pending)
                 Timing.KillCoroutines(entry.Value);
 
             pending.Clear();
             spawnCounter = 0;
-
-            ScaleArbiter.Clear();
         }
 
         private bool IsEligible(Player player, RoleTypeId role)
@@ -141,7 +167,7 @@ namespace RealisticSizes.Handlers
         {
             float delay = Mathf.Max(0f, config.ApplyDelay);
 
-            if (!config.SpreadWorkload || Player.List.Count < config.SpreadMinPlayers)
+            if (!config.SpreadWorkload || Player.Dictionary.Count < config.SpreadMinPlayers)
                 return delay;
 
             spawnCounter++;

@@ -41,6 +41,8 @@ namespace RealisticSizes
             ServerEvents.RoundEnded += playerHandlers.OnRoundEnded;
             ServerEvents.RestartingRound += playerHandlers.OnRestartingRound;
 
+            ServerEvents.ReloadedConfigs += OnReloadedConfigs;
+
             PluginDirectory.Register(this, Capability.Scale);
 
             base.OnEnabled();
@@ -48,21 +50,37 @@ namespace RealisticSizes
 
         public override void OnDisabled()
         {
-            PlayerEvents.Spawned -= playerHandlers.OnSpawned;
-            PlayerEvents.Left -= playerHandlers.OnLeft;
+            if (playerHandlers is not null)
+            {
+                PlayerEvents.Spawned -= playerHandlers.OnSpawned;
+                PlayerEvents.Left -= playerHandlers.OnLeft;
 
-            ServerEvents.RoundStarted -= playerHandlers.OnRoundStarted;
-            ServerEvents.RoundEnded -= playerHandlers.OnRoundEnded;
-            ServerEvents.RestartingRound -= playerHandlers.OnRestartingRound;
+                ServerEvents.RoundStarted -= playerHandlers.OnRoundStarted;
+                ServerEvents.RoundEnded -= playerHandlers.OnRoundEnded;
+                ServerEvents.RestartingRound -= playerHandlers.OnRestartingRound;
 
-            playerHandlers?.Reset();
+                playerHandlers.Stop();
+            }
 
+            ServerEvents.ReloadedConfigs -= OnReloadedConfigs;
             PluginDirectory.Unregister(this);
 
             playerHandlers = null;
             Instance = null;
 
             base.OnDisabled();
+        }
+
+        private void OnReloadedConfigs()
+        {
+            try
+            {
+                ValidateConfig();
+            }
+            catch (Exception e)
+            {
+                Log.Error($"OnReloadedConfigs: {e}");
+            }
         }
 
         private void ValidateConfig()
@@ -74,10 +92,28 @@ namespace RealisticSizes
             }
 
             if (Config.SpreadStep < 0f)
+            {
+                Log.Warn($"SpreadStep ({Config.SpreadStep}) negatif, remis a 0.");
                 Config.SpreadStep = 0f;
+            }
 
             if (Config.SpreadMinPlayers < 1)
+            {
+                Log.Warn($"SpreadMinPlayers ({Config.SpreadMinPlayers}) inferieur a 1, remis a 1.");
                 Config.SpreadMinPlayers = 1;
+            }
+
+            if (Config.IgnoredRoles is null)
+            {
+                Log.Warn("IgnoredRoles est absent, remis a une liste vide.");
+                Config.IgnoredRoles = new List<RoleTypeId>();
+            }
+
+            if (Config.ManualRanges is null)
+            {
+                Log.Warn("ManualRanges est absent, remis a une table vide.");
+                Config.ManualRanges = new Dictionary<RoleTypeId, SizeRange>();
+            }
 
             Check("RoleplayRange", Config.RoleplayRange);
             Check("FunRange", Config.FunRange);
